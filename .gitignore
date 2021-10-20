@@ -1,0 +1,7 @@
+constants.py
+__pycache__/
+main.py
+bin/
+include/
+lib/
+pyvenv.cfg

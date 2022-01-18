@@ -47,7 +47,7 @@ def loginIG():
     global driver
     chrome_options = Options()
     # chrome_options.add_experimental_option("detach", True)
-    chrome_options.add_argument("--incognito")
+    # chrome_options.add_argument("--incognito")
     driver = webdriver.Chrome(executable_path=CHROME_PATH, options=chrome_options)
     driver.get("https://www.instagram.com/accounts/login/")
     body = driver.find_element_by_id("react-root") # access the correct body to get to elements
@@ -56,6 +56,7 @@ def loginIG():
     body.find_element_by_name("username").send_keys(USERNAME)
     time.sleep(1) # give time to unlock login button
     body.find_element_by_class_name("sqdOP.L3NKy.y3zKF     ").click()
+    driver.find_elements_by_tag_name("body")
     time.sleep(4) # give time to login
 
 def getListFromFlex(pageurl, queue):
@@ -66,7 +67,7 @@ def getListFromFlex(pageurl, queue):
     time.sleep(1)
     numlst = int(body.find_element_by_partial_link_text(pageurl).text.split()[0])
     body.find_element_by_xpath("//a[@href='/"+USERNAME+"/"+pageurl+"/']").click()
-    time.sleep(1)
+    time.sleep(2)
     currlst = []
     while(len(currlst)<numlst):
         currlst = driver.find_elements_by_class_name("FPmhX.notranslate._0imsa ")
@@ -88,7 +89,7 @@ def getListFromFlex(pageurl, queue, username):
     time.sleep(1)
     numlst = int(body.find_element_by_partial_link_text(pageurl).text.split()[0].replace(",",""))
     body.find_element_by_xpath("//a[@href='/"+username+"/"+pageurl+"/']").click()
-    time.sleep(1)
+    time.sleep(2)
     currlst = []
     while(len(currlst)<numlst):
         currlst = driver.find_elements_by_class_name("FPmhX.notranslate._0imsa ")
@@ -119,26 +120,31 @@ def route1():
     p2.join()
     compare(queue)
 
-def compare(queue):
+def compare(queue, username=USERNAME):
     dictionary = queue.get()
     print(len(dictionary["following"]))
     print(len(dictionary["followers"]))
     listofnotfollowers = [follow for follow in dictionary["following"] if follow not in dictionary["followers"]]
-    recordkeep(dictionary)
     print(listofnotfollowers)
+    recordkeep(dictionary, username)
 
-def recordkeep(dictionary):
-    with open("record.txt", "r+") as f:
+def recordkeep(dictionary, username):
+    record = ""
+    with open("record.txt", "r") as f:
         record = json.loads(f.read())
-        old_record = record[USERNAME]
-        if old_record:
-            lost_followers = [follower for follower in old_record["followers"] if follower not in dictionary["followers"]]
-            print("Lost followers")
-            print(lost_followers)
-        record[USERNAME] = dictionary
+    try:
+        old_record = record[username]
+    except:
+        old_record = False
+    if old_record:
+        lost_followers = [follower for follower in old_record["followers"] if follower not in dictionary["followers"]] # TODO: something wrong
+        print("Lost followers")
+        print(lost_followers)
+    record[username] = dictionary
+    with open("record.txt", "w") as f:
         f.write(json.dumps(record))
 
-def route2(username=""):
+def route2(username=""): # needs to be less than 1000
     """
     Goes through followers+following of someone you follow and analyzes; Can only do a few hundred
     """
@@ -157,6 +163,6 @@ def route2(username=""):
     p2.start()
     p1.join()
     p2.join()
-    compare(queue)
+    compare(queue, username)
 
 # driver.find_element_by_class_name("sqdOP.yWX7d.y3zKF     ") Not Now button

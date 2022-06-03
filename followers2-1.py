@@ -21,7 +21,7 @@ def login():
     global driver
     chrome_options = Options()
     # chrome_options.add_experimental_option("detach", True)
-    # chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--incognito")
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
     driver.get("https://www.instagram.com/accounts/login/")
     body = driver.find_element_by_id("react-root") # access the correct body to get to elements
@@ -37,6 +37,7 @@ def getID():
     global driver, id, username
     driver.get("https://www.instagram.com/"+username+"/?__a=1")
     x = driver.find_element_by_tag_name("body").text
+    print(x)
     profile = json.loads(x)
     id = profile['graphql']['user']['id']
 
@@ -81,7 +82,7 @@ def get_Users_List(page, queue): # page = followers or following
     ret = queue.get()
     ret[page] = users_lst
     queue.put(ret)
-    driver.close()
+    driver.quit()
 
 def main(page, queue):
     print("Logging in...")
